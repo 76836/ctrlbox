@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CtrlBox</title>
+  <style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f2f2f7;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 90%;
+    max-width: 400px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #ccc;
+}
+
+.header img {
+    max-width: 100px;
+    height: auto;
+    border-radius: 10px;
+}
+
+.settings {
+    padding: 20px;
+}
+
+.settings button {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 10px;
+    background-color: #007aff;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.settings button:last-child {
+    margin-bottom: 0;
+}
+
+.settings button:hover {
+    background-color: #005bb5;
+}
+  </style>
+    <!-- PWA Meta Tags -->
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="CtrlBox">
+    <link rel="manifest" href="data:application/json,{"name":"CtrlBox","short_name":"CtrlBox","start_url":".","display":"standalone","background_color":"#ffffff","description":"Control interface for MacroDriod","icons":[{"src":"icon.png","sizes":"192x192","type":"image/png"}]}">
+
+    <!-- Fallback icon in case the inline manifest icon does not load -->
+    <link rel="icon" href="icon.png">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img id="control-image" src="" alt="Control Image">
+        </div>
+        <div class="settings">
+            <button id="lockBtn">Lock</button>
+            <button id="pingBtn">Ping</button>
+            <button id="pauseBtn">Play/Pause</button>
+            <button onclick="window.location = './settings';">CtrlBox Settings</button>
+        </div>
+    </div>
+    <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Load the image URL from local storage
+    const controlImageUrl = localStorage.getItem('controlImageUrl');
+    if (controlImageUrl) {
+        document.getElementById('control-image').src = controlImageUrl;
+    }
+
+    // Define the button actions
+    const buttons = [
+        { id: 'lockBtn', endpoint: '/lock' },
+        { id: 'pingBtn', endpoint: '/ping' },
+        { id: 'pauseBtn', endpoint: '/pause' }
+    ];
+
+    buttons.forEach(button => {
+        document.getElementById(button.id).addEventListener('click', function () {
+            const webhookUrl = localStorage.getItem('webhookUrl');
+            if (webhookUrl) {
+                fetch(webhookUrl + button.endpoint, {
+                    method: 'POST'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        console.log(button.endpoint + ' request sent successfully');
+                    } else {
+                        console.error('Failed to send ' + button.endpoint + ' request');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                console.error('Webhook URL not found in local storage');
+            }
+        });
+    });
+});
+  </script>
+</body>
+</html>
