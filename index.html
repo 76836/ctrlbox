@@ -60,12 +60,17 @@
     background-color: #005bb5;
 }
   </style>
-    <!-- PWA Meta Tags -->
+   <!-- PWA Meta Tags -->
     <link rel="apple-touch-icon" href="icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CtrlBox">
-    <link rel="manifest" href="data:application/json,{"name":"CtrlBox","short_name":"CtrlBox","start_url":".","display":"standalone","background_color":"#ffffff","description":"Control interface for MacroDriod","icons":[{"src":"icon.png","sizes":"192x192","type":"image/png"}]}">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Control Box">
+
+    <!-- Inline Manifest -->
+    <link rel="manifest" href="data:application/json,{%22name%22:%22CtrlBox%22,%22short_name%22:%22CtrlBox%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22#ffffff%22,%22description%22:%22Control%20interface%20for%20IoT%20devices%22,%22icons%22:[{%22src%22:%22icon.png%22,%22sizes%22:%22192x192%22,%22type%22:%22image/png%22}]}">
 
     <!-- Fallback icon in case the inline manifest icon does not load -->
     <link rel="icon" href="icon.png">
