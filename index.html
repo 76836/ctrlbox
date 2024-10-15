@@ -7,7 +7,7 @@
   <style>
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #f2f2f7;
+    background-color: black;
     margin: 0;
     padding: 0;
     display: flex;
@@ -90,35 +90,37 @@
     <script>
   document.addEventListener('DOMContentLoaded', function () {
     // Load the image URL from local storage
-    const controlImageUrl = localStorage.getItem('controlImageUrl');
+    var controlImageUrl = localStorage.getItem('controlImageUrl');
     if (controlImageUrl) {
         document.getElementById('control-image').src = controlImageUrl;
     }
 
     // Define the button actions
-    const buttons = [
+    var buttons = [
         { id: 'lockBtn', endpoint: '/lock' },
         { id: 'pingBtn', endpoint: '/ping' },
         { id: 'pauseBtn', endpoint: '/pause' }
     ];
 
-    buttons.forEach(button => {
+    buttons.forEach(function(button) {
         document.getElementById(button.id).addEventListener('click', function () {
-            const webhookUrl = localStorage.getItem('webhookUrl');
+            var webhookUrl = localStorage.getItem('webhookUrl');
             if (webhookUrl) {
-                fetch(webhookUrl + button.endpoint, {
-                    method: 'POST'
-                })
-                .then(response => {
-                    if (response.ok) {
-                        console.log(button.endpoint + ' request sent successfully');
-                    } else {
-                        console.error('Failed to send ' + button.endpoint + ' request');
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', webhookUrl + button.endpoint, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            console.log(button.endpoint + ' request sent successfully');
+                        } else {
+                            console.error('Failed to send ' + button.endpoint + ' request');
+                        }
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
+                };
+                xhr.onerror = function () {
+                    console.error('Error sending the request');
+                };
+                xhr.send();
             } else {
                 console.error('Webhook URL not found in local storage');
             }
