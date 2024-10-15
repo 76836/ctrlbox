@@ -108,24 +108,54 @@
             if (webhookUrl) {
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', webhookUrl + button.endpoint, true);
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200) {
-                            console.log(button.endpoint + ' request sent successfully');
-                        } else {
-                            console.error('Failed to send ' + button.endpoint + ' request');
-                        }
+
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        console.log(button.endpoint + ' request sent successfully');
+                    } else if (webhookUrl.startsWith('https://')) {
+                        // Retry with HTTP if HTTPS fails
+                        webhookUrl = webhookUrl.replace('https://', 'http://');
+                        retryRequest(webhookUrl, button.endpoint);
+                    } else {
+                        console.error('Failed to send ' + button.endpoint + ' request');
                     }
                 };
+
                 xhr.onerror = function () {
-                    console.error('Error sending the request');
+                    if (webhookUrl.startsWith('https://')) {
+                        // Retry with HTTP on network error
+                        webhookUrl = webhookUrl.replace('https://', 'http://');
+                        retryRequest(webhookUrl, button.endpoint);
+                    } else {
+                        console.error('Error sending the request');
+                    }
                 };
+
                 xhr.send();
             } else {
                 console.error('Webhook URL not found in local storage');
             }
         });
     });
+
+    // Retry function for HTTP fallback
+    function retryRequest(url, endpoint) {
+        var xhrRetry = new XMLHttpRequest();
+        xhrRetry.open('POST', url + endpoint, true);
+        xhrRetry.onreadystatechange = function () {
+            if (xhrRetry.readyState === 4) {
+                if (xhrRetry.status === 200) {
+                    console.log(endpoint + ' request sent successfully (HTTP fallback)');
+                } else {
+                    console.error('Failed to send ' + endpoint + ' request (HTTP fallback)');
+                }
+            }
+        };
+        xhrRetry.onerror = function () {
+            console.error('Error sending the request (HTTP fallback)');
+        };
+        xhrRetry.send();
+    }
 });
   </script>
 </body>
