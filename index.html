@@ -88,7 +88,7 @@
         </div>
     </div>
     <script>
-  document.addEventListener('DOMContentLoaded', function () {
+ document.addEventListener('DOMContentLoaded', function () {
     // Load the image URL from local storage
     var controlImageUrl = localStorage.getItem('controlImageUrl');
     if (controlImageUrl) {
@@ -106,31 +106,25 @@
         document.getElementById(button.id).addEventListener('click', function () {
             var webhookUrl = localStorage.getItem('webhookUrl');
             if (webhookUrl) {
+                // Attempt HTTPS request
                 var xhr = new XMLHttpRequest();
                 xhr.open('POST', webhookUrl + button.endpoint, true);
-
-                xhr.onload = function () {
-                    if (xhr.status === 200) {
-                        console.log(button.endpoint + ' request sent successfully');
-                    } else if (webhookUrl.startsWith('https://')) {
-                        // Retry with HTTP if HTTPS fails
-                        webhookUrl = webhookUrl.replace('https://', 'http://');
-                        retryRequest(webhookUrl, button.endpoint);
-                    } else {
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4 && xhr.status === 0) {
+                        // HTTPS request failed, retry via iframe using HTTP
+                        console.log('HTTPS failed, retrying with HTTP and iframe...');
+                        retryWithIframe(webhookUrl.replace('https://', 'http://') + button.endpoint);
+                    } else if (xhr.readyState === 4 && xhr.status === 200) {
+                        console.log(button.endpoint + ' request sent successfully (HTTPS)');
+                    } else if (xhr.readyState === 4) {
                         console.error('Failed to send ' + button.endpoint + ' request');
                     }
                 };
-
                 xhr.onerror = function () {
-                    if (webhookUrl.startsWith('https://')) {
-                        // Retry with HTTP on network error
-                        webhookUrl = webhookUrl.replace('https://', 'http://');
-                        retryRequest(webhookUrl, button.endpoint);
-                    } else {
-                        console.error('Error sending the request');
-                    }
+                    // HTTPS request failed, retry via iframe using HTTP
+                    console.log('HTTPS error, retrying with HTTP and iframe...');
+                    retryWithIframe(webhookUrl.replace('https://', 'http://') + button.endpoint);
                 };
-
                 xhr.send();
             } else {
                 console.error('Webhook URL not found in local storage');
@@ -138,23 +132,29 @@
         });
     });
 
-    // Retry function for HTTP fallback
-    function retryRequest(url, endpoint) {
-        var xhrRetry = new XMLHttpRequest();
-        xhrRetry.open('POST', url + endpoint, true);
-        xhrRetry.onreadystatechange = function () {
-            if (xhrRetry.readyState === 4) {
-                if (xhrRetry.status === 200) {
-                    console.log(endpoint + ' request sent successfully (HTTP fallback)');
-                } else {
-                    console.error('Failed to send ' + endpoint + ' request (HTTP fallback)');
-                }
-            }
-        };
-        xhrRetry.onerror = function () {
-            console.error('Error sending the request (HTTP fallback)');
-        };
-        xhrRetry.send();
+    // Retry function using an iframe with HTTP
+    function retryWithIframe(httpUrl) {
+        // Create the iframe element
+        var iframe = document.createElement('iframe');
+        iframe.src = httpUrl;
+        iframe.style.position = 'fixed';
+        iframe.style.top = '0';
+        iframe.style.left = '0';
+        iframe.style.width = '100vw';
+        iframe.style.height = '5vh';
+        iframe.style.border = 'none';
+        iframe.style.margin = '0';
+        iframe.style.padding = '0';
+        iframe.style.zIndex = '9999';
+
+        // Append iframe to the body
+        document.body.appendChild(iframe);
+
+        // Remove the iframe after 3 seconds
+        setTimeout(function () {
+            iframe.remove();
+            console.log('HTTP request completed via iframe, iframe removed.');
+        }, 3000);
     }
 });
   </script>
